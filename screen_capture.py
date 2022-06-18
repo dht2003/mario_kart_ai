@@ -11,7 +11,7 @@ def fps_counter(func):
         s.new_frame_time = time.time()
         fps = 1 / (s.new_frame_time - s.prev_frame_time)
         frame = func(s)
-        cv2.putText(frame, str(int(fps)), (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
+        cv2.putText(frame, str(int(fps)), (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (100, 255, 0), 3, cv2.LINE_AA)
         s.prev_frame_time = s.new_frame_time
         return frame
 
