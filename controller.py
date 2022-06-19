@@ -1,13 +1,74 @@
+import json
+import os
+
+
 class ControllerState:
 
-    def __init__(self):
+    def __init__(self, translator=None):
+        # TODO : add D-pad
+        # TODO : add support for L1 and L2
         self._a_button = 0
         self._b_button = 0
         self._l_button = 0
         self._x_button = 0
         self._y_button = 0
+        self._z_button = 0
+        self._start_button = 0
         self._steer_x = 0
         self._steer_y = 0
+        self.translator = GameCubeTranslator() if translator is None else translator
+
+    def __getitem__(self, key):
+        key = key.lower()
+        if key == "a":
+            return self.a_button
+        elif key == "b":
+            return self.b_button
+        elif key == "l":
+            return self.l_button
+        elif key == "x":
+            return self.x_button
+        elif key == "y":
+            return self.y_button
+        elif key == "z":
+            return self.z_button
+        elif key == "start":
+            return self._start_button
+        elif key == "steer_x":
+            return self.steer_x
+        elif key == "steer_y":
+            return self.steer_y
+        else:
+            raise KeyError("[ControllerState] Invalid key")
+
+    def __setitem__(self, key, value):
+        key = key.lower()
+        if key == "a":
+            self.a_button = value
+        elif key == "b":
+            self.b_button = value
+        elif key == "l":
+            self.l_button = value
+        elif key == "x":
+            self.x_button = value
+        elif key == "y":
+            self.y_button = value
+        elif key == "z":
+            self.z_button = value
+        elif key == "start":
+            self._start_button = value
+        elif key == "steer_x":
+            self.steer_x = value
+        elif key == "steer_y":
+            self.steer_y = value
+        else:
+            raise KeyError("[ControllerState] Invalid key")
+
+    def press_button(self, button):
+        self.__setitem__(self.translator[button], 1)
+
+    def release_button(self, button):
+        self.__setitem__(self.translator[button], 0)
 
     @property
     def a_button(self):
@@ -50,6 +111,26 @@ class ControllerState:
         self._y_button = round(value)
 
     @property
+    def z_button(self):
+        return self._z_button
+
+    @z_button.setter
+    def z_button(self, value):
+        self._z_button = round(value)
+
+    @property
+    def start_button(self):
+        return self._start_button
+
+    @start_button.setter
+    def start_button(self, value):
+        self._start_button = value
+
+    @z_button.setter
+    def z_button(self, value):
+        self._z_button = round(value)
+
+    @property
     def steer_x(self):
         return self._steer_x
 
@@ -79,3 +160,30 @@ class ControllerState:
 
     def l_pressed(self):
         return self._l_button == 1
+
+    def steer(self, value, axis):
+        if axis == 0:
+            self.steer_x = value
+        elif axis == 1:
+            self.steer_y = value
+
+
+class ControllerTranslator:
+    def __init__(self, keys_file):
+        self.keys_file = keys_file
+        with open(os.path.join(keys_file)) as file:
+            self.button_keys = json.load(file)
+
+    def __getitem__(self, key):
+        return self.button_keys[key]
+
+
+class Ps4ControllerTranslator(ControllerTranslator):
+    def __init__(self, ps4_key_file="ps4_keys.json"):
+        super(Ps4ControllerTranslator, self).__init__(ps4_key_file)
+
+
+class GameCubeTranslator(ControllerTranslator):
+    def __init__(self, gamecube_keys_file="gamecube_keys.json"):
+        super(GameCubeTranslator, self).__init__(gamecube_keys_file)
+        self.button_keys = {int(k): v for k, v in self.button_keys.items()}

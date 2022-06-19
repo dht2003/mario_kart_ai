@@ -15,25 +15,17 @@ def main():
     sc = mk_capture.MKScreenCapture()
     vc = frame_addons.VisualController()
     cs = controller.ControllerState()
-
-    with open(os.path.join("ps4_keys.json"), 'r+') as file:
-        button_keys = json.load(file)
-
-    print(button_keys)
-
+    gc_translator = controller.GameCubeTranslator()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
-                if event.button == 3:
-                    cs.a_button = 1
+                print(event.button)
+                cs.press_button(event.button)
             if event.type == pygame.JOYBUTTONUP:
-                if event.button == 3:
-                    cs.a_button = 0
+                cs.release_button(event.button)
             if event.type == pygame.JOYAXISMOTION:
-                if event.axis == 0:
-                    cs.steer_x = event.value
-                elif event.axis == 1:
-                    cs.steer_y = event.value
+                cs.steer(event.value, event.axis)
+
         frame = sc.capture_frame_fps()
         frame = vc.draw_controller(frame, cs)
         cv2.imshow("mario kart wii", frame)
