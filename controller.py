@@ -5,7 +5,6 @@ import os
 class ControllerState:
 
     def __init__(self, translator=None):
-        # TODO : add D-pad
         # TODO : add support for L1 and L2
         self._a_button = 0
         self._b_button = 0
@@ -14,11 +13,16 @@ class ControllerState:
         self._y_button = 0
         self._z_button = 0
         self._start_button = 0
+        self._dpad_up = 0
+        self._dpad_down = 0
+        self._dpad_left = 0
+        self._dpad_right = 0
         self._steer_x = 0
         self._steer_y = 0
         self.translator = GameCubeTranslator() if translator is None else translator
 
     def __getitem__(self, key):
+        key = self.translator[key]
         key = key.lower()
         if key == "a":
             return self.a_button
@@ -32,6 +36,14 @@ class ControllerState:
             return self.y_button
         elif key == "z":
             return self.z_button
+        elif key == "dpad-up":
+            return self.dpad_up
+        elif key == "dpad-down":
+            return self.dpad_down
+        elif key == "dpad-left":
+            return self.dpad_left
+        elif key == "dpad-right":
+            return self.dpad_right
         elif key == "start":
             return self._start_button
         elif key == "steer_x":
@@ -42,6 +54,7 @@ class ControllerState:
             raise KeyError("[ControllerState] Invalid key")
 
     def __setitem__(self, key, value):
+        key = self.translator[key]
         key = key.lower()
         if key == "a":
             self.a_button = value
@@ -57,6 +70,14 @@ class ControllerState:
             self.z_button = value
         elif key == "start":
             self._start_button = value
+        elif key == "dpad-up":
+            self.dpad_up = value
+        elif key == "dpad-down":
+            self.dpad_down = value
+        elif key == "dpad-left":
+            self.dpad_left = value
+        elif key == "dpad-right":
+            self.dpad_right = value
         elif key == "steer_x":
             self.steer_x = value
         elif key == "steer_y":
@@ -65,10 +86,10 @@ class ControllerState:
             raise KeyError("[ControllerState] Invalid key")
 
     def press_button(self, button):
-        self.__setitem__(self.translator[button], 1)
+        self.__setitem__(button, 1)
 
     def release_button(self, button):
-        self.__setitem__(self.translator[button], 0)
+        self.__setitem__(button, 0)
 
     @property
     def a_button(self):
@@ -126,9 +147,37 @@ class ControllerState:
     def start_button(self, value):
         self._start_button = value
 
-    @z_button.setter
-    def z_button(self, value):
-        self._z_button = round(value)
+    @property
+    def dpad_up(self):
+        return self._dpad_up
+
+    @dpad_up.setter
+    def dpad_up(self, value):
+        self._dpad_up = round(value)
+
+    @property
+    def dpad_down(self):
+        return self._dpad_down
+
+    @dpad_down.setter
+    def dpad_down(self, value):
+        self._dpad_down = round(value)
+
+    @property
+    def dpad_left(self):
+        return self._dpad_left
+
+    @dpad_left.setter
+    def dpad_left(self, value):
+        self._dpad_left = round(value)
+
+    @property
+    def dpad_right(self):
+        return self._dpad_right
+
+    @dpad_right.setter
+    def dpad_right(self, value):
+        self._dpad_right = round(value)
 
     @property
     def steer_x(self):
@@ -160,6 +209,24 @@ class ControllerState:
 
     def l_pressed(self):
         return self._l_button == 1
+
+    def start_pressed(self):
+        return self._start_button == 1
+
+    def z_pressed(self):
+        return self._z_button == 1
+
+    def dpad_up_pressed(self):
+        return self._dpad_up == 1
+
+    def dpad_down_pressed(self):
+        return self._dpad_down == 1
+
+    def dpad_left_pressed(self):
+        return self._dpad_left == 1
+
+    def dpad_right_pressed(self):
+        return self._dpad_right == 1
 
     def steer(self, value, axis):
         if axis == 0:

@@ -1,8 +1,6 @@
 from cv2 import cv2
 
 
-# TODO : Add D-Pad visualization
-
 class Button:
     def __init__(self, button_str, button_radius=10):
         self._button_str = button_str
@@ -17,14 +15,11 @@ class Button:
         frame = frame.copy()
         text_position = (
             position[0] - self._button_text_size[0] // 2, position[1] + self._button_text_size[1] // 2)
-        if is_pressed:
-            cv2.circle(frame, position, self._button_radius, self.button_color, -1)
-            cv2.putText(frame, self.button_str, text_position, self.font, self.text_scale, (100, 255, 255),
-                        self.text_thickness)
-        else:
-            cv2.circle(frame, position, self._button_radius, self.button_color, 2)
-            cv2.putText(frame, self.button_str, text_position, self.font, self.text_scale, self.button_color,
-                        self.text_thickness)
+        thickness = -1 if is_pressed else 2
+        text_color = (100, 255, 255) if is_pressed else (255, 0, 0)
+        cv2.circle(frame, position, self._button_radius, self.button_color, thickness)
+        cv2.putText(frame, self.button_str, text_position, self.font, self.text_scale, text_color,
+                    self.text_thickness)
         return frame
 
     @property
@@ -38,6 +33,36 @@ class Button:
     @property
     def button_radius(self):
         return self._button_radius
+
+
+class DpadVisualizer:
+    def __init__(self, dpad_size, dpad_offset=10):
+        self.dpad_color = (255, 0, 0)
+        self.dpad_size = dpad_size
+        self.dpad_offset = dpad_offset
+
+    def draw_dpad(self, frame, position, d_up, d_down, d_left, d_right):
+        frame = frame.copy()
+        up_center = (position[0], position[1] - self.dpad_offset)
+        down_center = (position[0], position[1] + self.dpad_offset)
+        left_center = (position[0] - self.dpad_offset, position[1])
+        right_center = (position[0] + self.dpad_offset, position[1])
+        up_thickness = -1 if d_up else 2
+        down_thickness = -1 if d_down else 2
+        left_thickness = -1 if d_left else 2
+        right_thickness = -1 if d_right else 2
+        cv2.rectangle(frame, (up_center[0] - self.dpad_size, up_center[1] + self.dpad_size),
+                      (up_center[0] + self.dpad_size, up_center[1] - self.dpad_size), self.dpad_color, up_thickness)
+        cv2.rectangle(frame, (down_center[0] - self.dpad_size, down_center[1] + self.dpad_size),
+                      (down_center[0] + self.dpad_size, down_center[1] - self.dpad_size), self.dpad_color,
+                      down_thickness)
+        cv2.rectangle(frame, (left_center[0] - self.dpad_size, left_center[1] + self.dpad_size),
+                      (left_center[0] + self.dpad_size, left_center[1] - self.dpad_size), self.dpad_color,
+                      left_thickness)
+        cv2.rectangle(frame, (right_center[0] - self.dpad_size, right_center[1] + self.dpad_size),
+                      (right_center[0] + self.dpad_size, right_center[1] - self.dpad_size), self.dpad_color,
+                      right_thickness)
+        return frame
 
 
 class Joystick:
@@ -64,7 +89,9 @@ class VisualController:
         self.y_button = Button("Y", 20)
         self.x_button = Button("X", 20)
         self.l_button = Button("L", 20)
+        self.z_button = Button("Z", 20)
         self.joystick = Joystick(40)
+        self.dpad = DpadVisualizer(10, 20)
 
     def draw_controller(self, frame, controller_state):
         frame = frame.copy()
@@ -88,5 +115,19 @@ class VisualController:
         frame = self.y_button.draw_button(frame, (
             self.y_button.button_radius + offset_x, h - self.a_button.button_radius - offset_y),
                                           controller_state.y_pressed())
+
+        offset_y += 50
+        frame = self.z_button.draw_button(frame, (
+            self.y_button.button_radius + offset_x, h - self.a_button.button_radius - offset_y),
+                                          controller_state.z_pressed())
+
+        offset_y += 50
+        frame = self.l_button.draw_button(frame, (
+            self.y_button.button_radius + offset_x, h - self.a_button.button_radius - offset_y),
+                                          controller_state.l_pressed())
+
+        frame = self.dpad.draw_dpad(frame, (w - 50, 100), controller_state.dpad_up_pressed(),
+                                    controller_state.dpad_down_pressed(), controller_state.dpad_left_pressed(),
+                                    controller_state.dpad_right_pressed())
 
         return frame

@@ -8,6 +8,9 @@
   "6": "Y",
   "7": "START",
   "9": "L",
-  "10": "Y"
-
+  "10": "Y",
+  "11": "dpad-up",
+  "12": "dpad-down",
+  "13": "dpad-left",
+  "14": "dpad-right"
 }

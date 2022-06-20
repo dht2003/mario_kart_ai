@@ -3,8 +3,6 @@ import pygame
 import mk_capture
 import frame_addons
 import controller
-import json
-import os
 
 
 def main():
@@ -15,11 +13,9 @@ def main():
     sc = mk_capture.MKScreenCapture()
     vc = frame_addons.VisualController()
     cs = controller.ControllerState()
-    gc_translator = controller.GameCubeTranslator()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
-                print(event.button)
                 cs.press_button(event.button)
             if event.type == pygame.JOYBUTTONUP:
                 cs.release_button(event.button)
