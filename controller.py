@@ -1,11 +1,13 @@
 import json
 import os
 
+L2_MAP = 15
+R2_MAP = 16
+
 
 class ControllerState:
 
     def __init__(self, translator=None):
-        # TODO : add support for L1 and L2
         self._a_button = 0
         self._b_button = 0
         self._l_button = 0
@@ -82,8 +84,6 @@ class ControllerState:
             self.steer_x = value
         elif key == "steer_y":
             self.steer_y = value
-        else:
-            raise KeyError("[ControllerState] Invalid key")
 
     def press_button(self, button):
         self.__setitem__(button, 1)
@@ -229,10 +229,17 @@ class ControllerState:
         return self._dpad_right == 1
 
     def steer(self, value, axis):
+        l2_r2_threshold = 0.9
         if axis == 0:
             self.steer_x = value
         elif axis == 1:
             self.steer_y = value
+        elif axis == 4:
+            value = 1 if value > l2_r2_threshold else 0
+            self.__setitem__(L2_MAP, value)
+        elif axis == 5:
+            value = 1 if value > l2_r2_threshold else 0
+            self.__setitem__(R2_MAP, value)
 
 
 class ControllerTranslator:

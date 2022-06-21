@@ -12,5 +12,3 @@ class MKScreenCapture(screen_capture.ScreenCapture):
         if index == -1:
             raise Exception("[MKScreenCapture] Cannot find mario kart window")
         super(MKScreenCapture, self).__init__(titles[index])
-
-
