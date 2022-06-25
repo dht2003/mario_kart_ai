@@ -36,6 +36,8 @@ class DataRecorder(tk.Tk):
         self.prev_button = tk.Button(self, text="Previous Frame", command=self.prev_frame)
         self.save_file_path_entry = tk.Entry(self, width=200)
         self.save_button = tk.Button(self, text="Save", command=self.save_footage)
+        self.go_start_button = tk.Button(self, text="Go Start", command=self.go_start)
+        self.go_end_button = tk.Button(self, text="Go End", command=self.go_end)
         self.start_button.pack()
         self.stop_button.pack()
         self.pause_button.pack()
@@ -43,6 +45,8 @@ class DataRecorder(tk.Tk):
         self.prev_button.pack()
         self.save_file_path_entry.pack()
         self.save_button.pack()
+        self.go_start_button.pack()
+        self.go_end_button.pack()
 
         self.protocol("WM_DELETE_WINDOW", self.close_app)
 
@@ -110,6 +114,12 @@ class DataRecorder(tk.Tk):
                                        self.Mk_screen_capture.frame_size)
         for frame in self.frames:
             video_writer.write(frame)
+
+    def go_start(self):
+        self.current_frame = 0
+
+    def go_end(self):
+        self.current_frame = len(self.frames) - 1
 
     def close_app(self):
         self.recording = False
