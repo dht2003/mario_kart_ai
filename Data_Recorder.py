@@ -180,7 +180,8 @@ class DataRecorder(tk.Tk):
                 frame_path = os.path.join(recording_path, f"{i + 1}" + IMAGE_TYPE)
                 cv2.imwrite(frame_path, self.frames[i])
                 f.write(frame_path + ',')
-                np.savetxt(f, self.controller_states[i].state(), newline=',')
+                # np.savetxt(f, self.controller_states[i].state(), newline=',')
+                self.controller_states[i].writefile(f)
                 f.write('\n')
 
     def go_start(self):
