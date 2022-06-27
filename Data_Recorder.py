@@ -6,18 +6,23 @@ from frame_addons import VisualController
 from threading import Thread
 import copy
 import pygame
+import os
+import shutil
+import tkinter.messagebox as tkMessageBox
+from datetime import datetime
+import numpy as np
+
+IMAGE_TYPE = ".png"
 
 
 class DataRecorder(tk.Tk):
-    def __init__(self, fps=12):
+    def __init__(self):
         super(DataRecorder, self).__init__()
 
         self.title('Data Recorder')
         self.geometry('500x300')
         self.controller_state = ControllerState()
         self.Mk_screen_capture = MKScreenCapture()
-        self.fourcc = cv2.VideoWriter_fourcc(*"XVID")
-        self.fps = fps
 
         self.visual_controller = VisualController()
         self.recorder_thread = Thread(target=self.record)
@@ -34,7 +39,8 @@ class DataRecorder(tk.Tk):
         self.pause_button = tk.Button(self, text="Pause", command=self.pause_record)
         self.next_button = tk.Button(self, text="Next Frame", command=self.next_frame)
         self.prev_button = tk.Button(self, text="Previous Frame", command=self.prev_frame)
-        self.save_file_path_entry = tk.Entry(self, width=200)
+        self.save_dir_path = tk.StringVar()
+        self.save_dir_path_entry = tk.Entry(self, width=200, textvariable=self.save_dir_path)
         self.save_button = tk.Button(self, text="Save", command=self.save_footage)
         self.go_start_button = tk.Button(self, text="Go Start", command=self.go_start)
         self.go_end_button = tk.Button(self, text="Go End", command=self.go_end)
@@ -48,7 +54,6 @@ class DataRecorder(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.close_app)
 
     def record(self):
-        # TODO : add keyboard recordings
         while True:
             while self.recording:
                 if not self.recording:
@@ -75,7 +80,7 @@ class DataRecorder(tk.Tk):
     def forget_pause_gui(self):
         self.next_button.forget()
         self.prev_button.forget()
-        self.save_file_path_entry.forget()
+        self.save_dir_path_entry.forget()
         self.save_button.forget()
         self.go_start_button.forget()
         self.go_end_button.forget()
@@ -86,7 +91,8 @@ class DataRecorder(tk.Tk):
     def pack_pause_ui(self):
         self.next_button.pack()
         self.prev_button.pack()
-        self.save_file_path_entry.pack()
+        self.save_dir_path_entry.pack()
+        self.save_dir_path.set("samples/" + datetime.now().strftime('%Y-%m-%d_%H_%M_%S'))
         self.save_button.pack()
         self.go_start_button.pack()
         self.go_end_button.pack()
@@ -153,10 +159,29 @@ class DataRecorder(tk.Tk):
             self.controller_state.steer(input_event.value, input_event.axis)
 
     def save_footage(self):
-        video_writer = cv2.VideoWriter(self.save_file_path_entry.get(), self.fourcc, self.fps,
-                                       self.Mk_screen_capture.frame_size)
-        for frame in self.frames:
-            video_writer.write(frame)
+        save_dir_path = self.save_dir_path.get()
+        if os.path.exists(save_dir_path):
+
+            if tkMessageBox.askyesno(title='Warning!', message='Output Directory Exists - Overwrite Data?',
+                                     parent=self):
+                shutil.rmtree(save_dir_path)
+                os.mkdir(save_dir_path)
+            else:
+                return
+
+        else:
+            os.mkdir(save_dir_path)
+
+        recording_path = os.path.join(save_dir_path, "recording")
+        os.mkdir(recording_path)
+        data_csv_path = os.path.join(save_dir_path, "data.csv")
+        with open(data_csv_path, 'w') as f:
+            for i in range(self.frame_idx):
+                frame_path = os.path.join(recording_path, f"{i + 1}" + IMAGE_TYPE)
+                cv2.imwrite(frame_path, self.frames[i])
+                f.write(frame_path + ',')
+                np.savetxt(f, self.controller_states[i].state(), newline=',')
+                f.write('\n')
 
     def go_start(self):
         self.current_frame_idx = self.start_scale.get()

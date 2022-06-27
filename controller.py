@@ -25,9 +25,9 @@ class ControllerState:
         self.translator = GameCubeTranslator() if translator is None else translator
 
     def state(self):
-        return np.array([self._a_button, self._b_button, self._l_button, self._x_button, self._y_button, self.z_button
-                            , self._dpad_up, self._dpad_down, self._dpad_left, self._dpad_right, self.steer_x,
-                         self.steer_y])
+        return np.array([self.steer_x, self.steer_y, self._a_button, self._b_button, self._l_button, self._x_button,
+                         self._y_button,
+                         self.z_button, self._dpad_up, self._dpad_down, self._dpad_left, self._dpad_right])
 
     def __getitem__(self, key):
         key = self.translator[key]

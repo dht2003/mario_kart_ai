@@ -11,9 +11,6 @@ def main():
     j = pygame.joystick.Joystick(0)
     j.init()
 
-    sc = mk_capture.MKScreenCapture()
-    vc = frame_addons.VisualController()
-    cs = controller.ControllerState()
     recorder = DataRecorder()
     recorder.mainloop()
 
