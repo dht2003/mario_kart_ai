@@ -28,6 +28,7 @@ class DataRecorder(tk.Tk):
         self.recorder_thread = Thread(target=self.record)
         self.frame_idx = 0
         self.current_frame_idx = 0
+        self.playing_recording = False
         self.frames = []
         self.controller_states = []
         self.recording = False
@@ -45,6 +46,7 @@ class DataRecorder(tk.Tk):
         self.go_start_button = tk.Button(self, text="Go Start", command=self.go_start)
         self.go_end_button = tk.Button(self, text="Go End", command=self.go_end)
         self.cut_footage_button = tk.Button(self, text="Cut Footage", command=self.cut_footage)
+        self.play_recording_button = tk.Button(self, text="Show Recording", command=self.start_recording_play)
         self.start_scale = tk.Scale(self, orient=tk.HORIZONTAL)
         self.end_scale = tk.Scale(self, orient=tk.HORIZONTAL)
         self.pause_button.pack()
@@ -56,8 +58,11 @@ class DataRecorder(tk.Tk):
     def record(self):
         while True:
             while self.recording:
-                if not self.recording:
-                    break
+                if self.playing_recording:
+                    if self.current_frame_idx < len(self.frames) - 1:
+                        self.current_frame_idx += 1
+                    else:
+                        self.playing_recording = False
                 for event in pygame.event.get():
                     self.handle_inputs(event)
                 if not self.paused:
@@ -87,6 +92,7 @@ class DataRecorder(tk.Tk):
         self.start_scale.forget()
         self.end_scale.forget()
         self.cut_footage_button.forget()
+        self.play_recording_button.forget()
 
     def pack_pause_ui(self):
         self.next_button.pack()
@@ -99,6 +105,7 @@ class DataRecorder(tk.Tk):
         self.start_scale.pack()
         self.end_scale.pack()
         self.cut_footage_button.pack()
+        self.play_recording_button.pack()
 
     def pack_record_gui(self):
         self.start_button.pack()
@@ -189,6 +196,10 @@ class DataRecorder(tk.Tk):
 
     def go_end(self):
         self.current_frame_idx = self.end_scale.get()
+
+    def start_recording_play(self):
+        self.current_frame_idx = 0
+        self.playing_recording = True
 
     def cut_footage(self):
         self.current_frame_idx = 0
