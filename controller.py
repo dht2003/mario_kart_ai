@@ -239,35 +239,43 @@ class ControllerState:
         return self._dpad_right == 1
 
     def steer(self, value, axis):
-        l2_r2_threshold = 0.9
-        if axis == 0:
+        triggers_threshold = 0.9
+        axis = self.translator.get_axis(axis)
+        if axis == "X":
             self.steer_x = value
-        elif axis == 1:
+        elif axis == "Y":
             self.steer_y = value
-        elif axis == 4:
-            value = 1 if value > l2_r2_threshold else 0
+        elif axis == "Left-trigger":
+            value = 1 if value > triggers_threshold else 0
             self.__setitem__(L2_MAP, value)
-        elif axis == 5:
-            value = 1 if value > l2_r2_threshold else 0
+        elif axis == "Right-trigger":
+            value = 1 if value > triggers_threshold else 0
             self.__setitem__(R2_MAP, value)
 
 
 class ControllerTranslator:
-    def __init__(self, keys_file):
+    def __init__(self, keys_file, axis_file):
         self.keys_file = keys_file
         with open(os.path.join(keys_file)) as file:
             self.button_keys = json.load(file)
+        self.axis_file = axis_file
+        with open(os.path.join(axis_file)) as file:
+            self.axis_dict = json.load(file)
 
     def __getitem__(self, key):
         return self.button_keys[key]
 
+    def get_axis(self, axis):
+        return self.axis_dict[axis]
+
 
 class Ps4ControllerTranslator(ControllerTranslator):
-    def __init__(self, ps4_key_file="ps4_keys.json"):
-        super(Ps4ControllerTranslator, self).__init__(ps4_key_file)
+    def __init__(self, ps4_key_file="ps4_keys.json", ps4_axis_file="ps4_axis.json"):
+        super(Ps4ControllerTranslator, self).__init__(ps4_key_file, ps4_axis_file)
 
 
 class GameCubeTranslator(ControllerTranslator):
-    def __init__(self, gamecube_keys_file="gamecube_keys.json"):
-        super(GameCubeTranslator, self).__init__(gamecube_keys_file)
+    def __init__(self, gamecube_keys_file="gamecube_keys.json", gamecube_axis_file="gamecube_axis.json"):
+        super(GameCubeTranslator, self).__init__(gamecube_keys_file, gamecube_axis_file)
         self.button_keys = {int(k): v for k, v in self.button_keys.items()}
+        self.axis_dict = {int(k): v for k, v in self.axis_dict.items()}

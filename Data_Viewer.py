@@ -8,15 +8,16 @@ import numpy as np
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
-from matplotlib.backends import _backend_tk
 
 matplotlib.use('TkAgg')
+
+CONTROLLER_STATE_END_COL = 13
 
 
 class DataViewer(tk.Tk):
     def __init__(self):
         super(DataViewer, self).__init__()
-        self.geometry('1000x700')
+        self.geometry('900x1000')
         self.frames_paths = None
         self.controller_states = None
         self.save_dir_path = tk.StringVar()
@@ -60,7 +61,8 @@ class DataViewer(tk.Tk):
         data_csv_path = os.path.join(save_dir_path, "data.csv")
         if os.path.exists(save_dir_path) and os.path.exists(recording_path) and os.path.exists(data_csv_path):
             self.frames_paths = np.genfromtxt(data_csv_path, delimiter=',', encoding='utf8', usecols=0, dtype=str)
-            self.controller_states = np.genfromtxt(data_csv_path, delimiter=',', encoding='utf8', usecols=range(1, 13),
+            self.controller_states = np.genfromtxt(data_csv_path, delimiter=',', encoding='utf8',
+                                                   usecols=range(1, CONTROLLER_STATE_END_COL),
                                                    dtype=np.float32)  # TODO: Improve this line
             self.current_frame_idx = 0
             if not self.started:
@@ -74,12 +76,23 @@ class DataViewer(tk.Tk):
         self.axes = self.fig.add_subplot(111)
 
     def draw_plot(self):
-        # TODO : fix or optimize this  function
-        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 0], 'r')
-        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 1], 'b')
-        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 2], 'g')
-        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 3], 'k')
-        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 4], 'y')
+        self.axes.clear()
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 0], 'r')  # X
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 1], 'b')  # Y
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 2], 'g')  # A
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 3], 'k')  # B
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 4], 'y')  # l
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 5], 'm')  # x
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 6], 'k')  # y
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 7], 'c')  # z
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 8],
+                       'tab:pink')  # up
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 9],
+                       'tab:orange')  # dd
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 10],
+                       'tab:purple')  # dl
+        self.axes.plot(range(0, self.current_frame_idx), self.controller_states[:self.current_frame_idx, 11],
+                       'tab:brown')  # dr
         self.PlotCanvas.draw()
 
     def video_loop(self):
@@ -96,7 +109,7 @@ class DataViewer(tk.Tk):
             if self.panel is None:
                 self.panel = tk.Label(image=image)
                 self.panel.image = image
-                self.panel.pack(side="left", padx=10, pady=10)
+                self.panel.pack(padx=10, pady=10)
 
             else:
                 self.panel.configure(image=image)

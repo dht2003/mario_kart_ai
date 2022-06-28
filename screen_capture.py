@@ -26,11 +26,16 @@ class ScreenCapture:
         self.prev_frame_time = 0
         self.new_frame_time = 0
         self.frame_size = frame_size
+        self.rows_from_ = 0
+        self.rows_to = frame_size[0]
+        self.cols_from_ = 0
+        self.cols_to = frame_size[1]
 
     def capture_frame(self):
         img = pyautogui.screenshot(region=(self.window.left, self.window.top, self.window.width, self.window.height))
         frame = np.array(img)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        #frame = ScreenCapture.crop_frame(frame, self.rows_from_, self.rows_to, self.cols_from_, self.cols_to)
         frame = cv2.resize(frame, self.frame_size)
         return frame
 
@@ -44,3 +49,17 @@ class ScreenCapture:
     @fps_counter
     def capture_frame_fps(self):
         return self.capture_frame()
+
+    def set_crop_row(self, from_, to):
+        self.rows_from_ = from_
+        self.rows_to = to
+
+    def set_crop_cols(self, from_, to):
+        self.cols_from_ = from_
+        self.cols_to = to
+
+    @staticmethod
+    def crop_frame(frame, rows_from_, rows_to, cols_from_, cols_to):
+        frame = frame.copy()
+        cropped_frame = frame[rows_from_:rows_to, cols_from_:cols_to]
+        return cropped_frame
