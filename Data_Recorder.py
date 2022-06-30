@@ -20,7 +20,7 @@ class DataRecorder(tk.Tk):
         super(DataRecorder, self).__init__()
 
         self.title('Data Recorder')
-        self.geometry('500x300')
+        self.geometry('550x400')
         self.controller_state = ControllerState()
         self.Mk_screen_capture = MKScreenCapture()
 
@@ -37,6 +37,7 @@ class DataRecorder(tk.Tk):
         self.paused = False
         self.start_button = tk.Button(self, text="Start", command=self.start_record)
         self.stop_button = tk.Button(self, text="Stop", command=self.stop_record)
+        self.reset_recording_button = tk.Button(self, text="Reset Recording", command=self.reset_recording)
         self.pause_button = tk.Button(self, text="Pause", command=self.pause_record)
         self.next_button = tk.Button(self, text="Next Frame", command=self.next_frame)
         self.prev_button = tk.Button(self, text="Previous Frame", command=self.prev_frame)
@@ -49,16 +50,17 @@ class DataRecorder(tk.Tk):
         self.play_recording_button = tk.Button(self, text="Show Recording", command=self.start_recording_play)
         self.start_scale = tk.Scale(self, orient=tk.HORIZONTAL)
         self.end_scale = tk.Scale(self, orient=tk.HORIZONTAL)
-        self.crop_row_from = tk.IntVar()
-        self.crop_col_from = tk.IntVar()
-        self.crop_row_to = tk.IntVar()
-        self.crop_col_to = tk.IntVar()
+        self.crop_up = tk.IntVar()
+        self.crop_left = tk.IntVar()
+        self.crop_down = tk.IntVar()
+        self.crop_right = tk.IntVar()
         self.crop_frame = tk.Frame(self)
-        self.crop_row_from_entry = tk.Entry(self.crop_frame, textvariable=self.crop_row_from)
-        self.crop_row_to_entry = tk.Entry(self.crop_frame, textvariable=self.crop_row_to)
-        self.crop_col_from_entry = tk.Entry(self.crop_frame, textvariable=self.crop_col_from)
-        self.crop_col_to_entry = tk.Entry(self.crop_frame, textvariable=self.crop_col_to)
+        self.crop_up_entry = tk.Entry(self.crop_frame, textvariable=self.crop_up)
+        self.crop_down_entry = tk.Entry(self.crop_frame, textvariable=self.crop_down)
+        self.crop_left_entry = tk.Entry(self.crop_frame, textvariable=self.crop_left)
+        self.crop_right_entry = tk.Entry(self.crop_frame, textvariable=self.crop_right)
         self.crop_button = tk.Button(self.crop_frame, text="Crop", command=self.crop)
+        self.pause_button.pack()
         self.pack_record_gui()
 
         self.protocol("WM_DELETE_WINDOW", self.close_app)
@@ -114,29 +116,31 @@ class DataRecorder(tk.Tk):
         self.end_scale.pack()
         self.cut_footage_button.pack()
         self.play_recording_button.pack()
-        self.crop_row_from.set(0)
-        self.crop_col_from.set(0)
-        self.crop_row_to.set(self.Mk_screen_capture.frame_size[0])
-        self.crop_col_to.set(self.Mk_screen_capture.frame_size[1])
+        self.crop_up.set(0)
+        self.crop_left.set(0)
+        self.crop_down.set(0)
+        self.crop_right.set(0)
 
     def pack_record_gui(self):
         self.start_button.pack()
         self.stop_button.pack()
-        self.crop_frame.pack()
-        self.crop_row_from_entry.pack()
-        self.crop_row_to_entry.pack()
-        self.crop_col_from_entry.pack()
-        self.crop_col_to_entry.pack()
+        self.reset_recording_button.pack()
+        self.crop_frame.pack(side=tk.LEFT)
+        self.crop_up_entry.pack(side=tk.LEFT)
+        self.crop_down_entry.pack(side=tk.LEFT)
+        self.crop_left_entry.pack(side=tk.LEFT)
+        self.crop_right_entry.pack(side=tk.LEFT)
         self.crop_button.pack()
 
     def forget_record_gui(self):
         self.start_button.forget()
         self.stop_button.forget()
+        self.reset_recording_button.forget()
         self.crop_frame.forget()
-        self.crop_row_from_entry.forget()
-        self.crop_row_to_entry.forget()
-        self.crop_col_from_entry.forget()
-        self.crop_col_to_entry.forget()
+        self.crop_up_entry.forget()
+        self.crop_down_entry.forget()
+        self.crop_left_entry.forget()
+        self.crop_right_entry.forget()
         self.crop_button.forget()
 
     def update_sliders(self):
@@ -232,9 +236,22 @@ class DataRecorder(tk.Tk):
         self.frame_idx = len(self.frames) - 1
         self.update_sliders()
 
+    def reset_recording(self):
+        self.frames.clear()
+        self.controller_states.clear()
+        self.frame_idx = self.current_frame_idx = 0
+
     def crop(self):
-        self.Mk_screen_capture.set_crop_row(self.crop_row_from.get(), self.crop_row_to.get())
-        self.Mk_screen_capture.set_crop_cols(self.crop_col_from.get(), self.crop_col_to.get())
+        try:
+            self.Mk_screen_capture.crop_up = self.crop_up.get()
+            self.Mk_screen_capture.crop_down = self.crop_down.get()
+            self.Mk_screen_capture.crop_left = self.crop_left.get()
+            self.Mk_screen_capture.crop_right = self.crop_right.get()
+        except tk.TclError as e:
+            self.Mk_screen_capture.crop_up = 0
+            self.Mk_screen_capture.crop_down = 0
+            self.Mk_screen_capture.crop_left = 0
+            self.Mk_screen_capture.crop_right = 0
 
     def close_app(self):
         self.recording = False

@@ -32,6 +32,7 @@ class DataViewer(tk.Tk):
         self.play_recording_button = tk.Button(self, text="Show Recording", command=self.start_recording_play)
         self.go_frame_entry = tk.Entry(self, textvariable=self.go_frame_var)
         self.go_frame_button = tk.Button(self, text="GO Frame", command=self.go_frame)
+        self.view_gui_loaded = False
         self.fig = None
         self.axes = None
         self.init_plot()
@@ -39,15 +40,7 @@ class DataViewer(tk.Tk):
         self.panel = None
         self.save_dir_path_entry.pack()
         self.read_save_button.pack()
-        self.next_button.pack()
-        self.prev_button.pack()
-        self.go_start_button.pack()
-        self.go_end_button.pack()
-        self.go_frame_entry.pack()
-        self.go_frame_button.pack()
-        self.play_recording_button.pack()
-        self.path_label.pack()
-        self.PlotCanvas.get_tk_widget().pack()
+
         self.current_frame_idx = 0
         self.video_loop_thread = Thread(target=self.video_loop)
         self.started = False
@@ -68,8 +61,22 @@ class DataViewer(tk.Tk):
             if not self.started:
                 self.video_loop_thread.start()
                 self.started = True
+
+            if not self.view_gui_loaded:
+                self.pack_viewer_gui()
         else:
             tkMessageBox.showerror(title="Invalid recording path", message="Recording Path is invalid")
+
+    def pack_viewer_gui(self):
+        self.next_button.pack()
+        self.prev_button.pack()
+        self.go_start_button.pack()
+        self.go_end_button.pack()
+        self.go_frame_entry.pack()
+        self.go_frame_button.pack()
+        self.play_recording_button.pack()
+        self.path_label.pack()
+        self.PlotCanvas.get_tk_widget().pack()
 
     def init_plot(self):
         self.fig = Figure(figsize=(4, 3), dpi=80)
@@ -142,3 +149,4 @@ class DataViewer(tk.Tk):
         self.app_open = False
         self.started = False
         self.destroy()
+
