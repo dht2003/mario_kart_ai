@@ -240,10 +240,13 @@ class ControllerState:
 
     def steer(self, value, axis):
         triggers_threshold = 0.9
+        joystick_threshold = 0.1
         axis = self.translator.get_axis(axis)
         if axis == "X":
+            value = 0 if abs(value) <= joystick_threshold else value
             self.steer_x = value
         elif axis == "Y":
+            value = 0 if abs(value) <= joystick_threshold else value
             self.steer_y = value
         elif axis == "Left-trigger":
             value = 1 if value > triggers_threshold else 0

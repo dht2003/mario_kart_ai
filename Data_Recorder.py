@@ -105,6 +105,9 @@ class DataRecorder(tk.Tk):
         self.play_recording_button.forget()
 
     def pack_pause_ui(self):
+        scale_width = 400 if len(self.frames) > 1000 else 50
+        self.start_scale.config(length=scale_width)
+        self.end_scale.config(length=scale_width)
         self.next_button.pack()
         self.prev_button.pack()
         self.save_dir_path_entry.pack()
@@ -215,7 +218,6 @@ class DataRecorder(tk.Tk):
                 frame_path = os.path.join(recording_path, f"{i + 1}" + IMAGE_TYPE)
                 cv2.imwrite(frame_path, self.frames[i])
                 f.write(frame_path + ',')
-                # np.savetxt(f, self.controller_states[i].state(), newline=',')
                 self.controller_states[i].writefile(f)
                 f.write('\n')
 
