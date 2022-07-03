@@ -1,8 +1,9 @@
 import os
 from PIL import Image
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+from torchvision.utils import make_grid
 import torch
 import torchvision
 import math
@@ -58,3 +59,15 @@ class MKDataSet(Dataset):
 
     def __len__(self):
         return self.n_samples
+
+
+def show_batch(dl):
+    for images, labels in dl:
+        fig, ax = plt.subplots(figsize=(16, 12))
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
+        plt.show()
+        break
+
+

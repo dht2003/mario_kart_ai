@@ -1,8 +1,13 @@
-from Data import MKDataSet
+from Data import MKDataSet, show_batch
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms, utils
 
 
 def main():
-    data = MKDataSet("D:/dev/mario_kart_ai/samples")
+    data = MKDataSet("D:/dev/mario_kart_ai/samples",
+                     transform=transforms.Compose([transforms.ToTensor()]))
+    loader = DataLoader(data, batch_size=192, num_workers=4)
+    show_batch(loader)
 
 
 if __name__ == "__main__":
