@@ -38,7 +38,7 @@ class Trainer:
 
                 if batch_idx % self.log_interval == 0:
                     loss_val = train_loss / (batch_idx + 1)
-                    print("Training Epoch: {} | Loss: {}".format(epoch, loss_val))
+                    print(f"Training Epoch: {epoch} | Loss: {loss_val}")
                     self.train_losses.append(loss_val)
                     self.train_counter.append(
                         (batch_idx * self.batch_size) + (epoch * len(self.trainloader.dataset)))
@@ -54,7 +54,7 @@ class Trainer:
                     valid_loss += loss.item()
                     if batch_idx % self.log_interval == 0:
                         loss_val = valid_loss / (batch_idx + 1)
-                        print("Training Epoch: {} | Loss: {}".format(epoch, loss_val))
+                        print(f"Training Epoch: {epoch} | Loss: {loss}")
             print("Valid End\n")
 
     def plot_train_loss(self):
