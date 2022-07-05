@@ -54,7 +54,7 @@ class Trainer:
                     valid_loss += loss.item()
                     if batch_idx % self.log_interval == 0:
                         loss_val = valid_loss / (batch_idx + 1)
-                        print(f"Training Epoch: {epoch} | Loss: {loss}")
+                        print(f"Training Epoch: {epoch} | Loss: {loss_val}")
             print("Valid End\n")
 
     def plot_train_loss(self):
