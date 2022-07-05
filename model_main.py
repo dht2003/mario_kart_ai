@@ -1,3 +1,5 @@
+from torchvision import transforms
+
 from Data import MKDataSet, show_batch, data_loader
 import torch
 import torch.nn as nn
@@ -21,7 +23,7 @@ def main():
     criterion = nn.MSELoss()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     trainer = Trainer(model, device, optimizer, criterion, trainloader, validloader, save_dir)
-    #trainer.load("results/mario-kart-model-0.pt")
+    trainer.load("results/mario-kart-model-0.pt")
     trainer.train(1)
     f = trainer.plot_train_loss()
     plt.show()

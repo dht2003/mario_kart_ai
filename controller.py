@@ -255,6 +255,20 @@ class ControllerState:
             value = 1 if value > triggers_threshold else 0
             self.__setitem__(R2_MAP, value)
 
+    def load_state(self, state_list):
+        self.steer_x = state_list[0]
+        self.steer_y = state_list[1]
+        self.a_button = state_list[2]
+        self.b_button = state_list[3]
+        self.l_button = state_list[4]
+        self.x_button = state_list[5]
+        self.y_button = state_list[6]
+        self.z_button = state_list[7]
+        self.dpad_up = state_list[8]
+        self.dpad_down = state_list[9]
+        self.dpad_left = state_list[10]
+        self.dpad_right = state_list[11]
+
 
 class ControllerTranslator:
     def __init__(self, keys_file, axis_file):
