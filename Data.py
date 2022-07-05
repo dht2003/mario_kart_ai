@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision.utils import make_grid
+from torchvision import transforms
 import torch
 import torchvision
 import math
@@ -71,3 +72,10 @@ def show_batch(dl):
         break
 
 
+def data_loader(trainroot, valroot, batch_size, num_workers):
+    transformations = transforms.Compose([transforms.ToTensor()])
+    train_dataset = MKDataSet(trainroot, transform=transformations)
+    val_dataset = MKDataSet(valroot, transform=transformations)
+    trainloader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers)
+    validloader = DataLoader(val_dataset, batch_size=batch_size, num_workers=num_workers)
+    return trainloader, validloader
