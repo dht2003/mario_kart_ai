@@ -11,6 +11,8 @@ import tkinter.messagebox as tkMessageBox
 from threading import Thread
 from mk_capture import MKScreenCapture
 from frame_addons import VisualController
+from PIL import Image
+from torchvision import transforms
 
 
 class AiDriveApp(tk.Tk):
@@ -25,10 +27,12 @@ class AiDriveApp(tk.Tk):
         self.app_open = True
         self.recording = False
         self.model_loaded = False
+        self.show_prediction = False
         self.model_path = tk.StringVar()
         self.model_path_entry = tk.Entry(self, width=200, textvariable=self.model_path)
         self.model = Model()
         self.load_model_button = tk.Button(self, text="Load Model", command=self.load_model)
+        self.transformations = transforms.Compose([transforms.ToTensor()])
         self.crop_up = tk.IntVar()
         self.crop_left = tk.IntVar()
         self.crop_down = tk.IntVar()
@@ -41,7 +45,9 @@ class AiDriveApp(tk.Tk):
         self.crop_button = tk.Button(self.crop_frame, text="Crop", command=self.crop)
         self.start_button = tk.Button(self, text="Start", command=self.start_record)
         self.stop_button = tk.Button(self, text="Stop", command=self.stop_record)
+        self.show_predictions_buttons = tk.Button(self, text="Show Predictions", command=self.prediction_visibility)
         self.recorder_thread = Thread(target=self.record)
+        self.start_button.pack()
         self.protocol("WM_DELETE_WINDOW", self.close_app)
 
     def pack_record_ui(self):
@@ -51,6 +57,7 @@ class AiDriveApp(tk.Tk):
         self.crop_left_entry.pack(side=tk.LEFT)
         self.crop_right_entry.pack(side=tk.LEFT)
         self.crop_button.pack()
+        self.show_predictions_buttons.pack()
 
     def forget_record_gui(self):
         self.crop_frame.forget()
@@ -59,19 +66,21 @@ class AiDriveApp(tk.Tk):
         self.crop_left_entry.forget()
         self.crop_right_entry.forget()
         self.crop_button.forget()
+        self.show_predictions_buttons.forget()
 
     def start_record(self):
-        if not self.started:
-            try:
+        try:
+            if not self.started:
                 self.Mk_screen_capture = MKScreenCapture()
                 self.started = True
                 self.recorder_thread.start()
-            except Exception as e:
-                print("[AiDriveApp] Cannot find mario kart window")
-        self.recording = True
-        self.start_button.forget()
-        self.stop_button.pack()
-        self.pack_record_ui()
+
+            self.recording = True
+            self.start_button.forget()
+            self.stop_button.pack()
+            self.pack_record_ui()
+        except Exception as e:
+            print("[AiDriveApp] Cannot find mario kart window")
 
     def stop_record(self):
         self.recording = False
@@ -91,11 +100,15 @@ class AiDriveApp(tk.Tk):
     def record(self):
         while True:
             while self.recording:
-                frame = self.Mk_screen_capture.capture_frame()
-                # TODO add model prediction
-                showen_frame = self.visual_controller.draw_controller(showen_frame, showen_state)
+                showen_frame = self.Mk_screen_capture.capture_frame()
+                if self.show_prediction:
+                    pil_frame = Image.fromarray(showen_frame)
+                    frame_tensor = self.transformations(pil_frame)
+                    prediction = self.model(torch.unsqueeze(frame_tensor, 0))
+                    prediction_list = prediction.tolist()[0]
+                    self.controller_sate.load_state(prediction_list)
+                    showen_frame = self.visual_controller.draw_controller(showen_frame, self.controller_sate)
                 cv2.imshow("mario kart wii", showen_frame)
-
             cv2.destroyAllWindows()
             if not self.app_open:
                 break
@@ -111,6 +124,13 @@ class AiDriveApp(tk.Tk):
             self.Mk_screen_capture.crop_down = 0
             self.Mk_screen_capture.crop_left = 0
             self.Mk_screen_capture.crop_right = 0
+
+    def prediction_visibility(self):
+        if self.show_prediction:
+            self.show_predictions_buttons.config(text="Hide Predictions")
+        else:
+            self.show_predictions_buttons.config(text="Show Predictions")
+        self.show_prediction = not self.show_prediction
 
     def close_app(self):
         self.started = False

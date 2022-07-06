@@ -6,8 +6,6 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.utils import make_grid
 from torchvision import transforms
 import torch
-import torchvision
-import math
 
 CONTROLLER_STATE_END_COL = 13
 
