@@ -48,16 +48,19 @@ class AiDriveApp(tk.Tk):
         self.show_predictions_buttons = tk.Button(self, text="Show Predictions", command=self.prediction_visibility)
         self.recorder_thread = Thread(target=self.record)
         self.start_button.pack()
+        self.model_path_entry.pack()
+        self.load_model_button.pack()
         self.protocol("WM_DELETE_WINDOW", self.close_app)
 
     def pack_record_ui(self):
+        self.show_predictions_buttons.pack()
+
         self.crop_frame.pack(side=tk.LEFT)
         self.crop_up_entry.pack(side=tk.LEFT)
         self.crop_down_entry.pack(side=tk.LEFT)
         self.crop_left_entry.pack(side=tk.LEFT)
         self.crop_right_entry.pack(side=tk.LEFT)
         self.crop_button.pack()
-        self.show_predictions_buttons.pack()
 
     def forget_record_gui(self):
         self.crop_frame.forget()
@@ -66,6 +69,7 @@ class AiDriveApp(tk.Tk):
         self.crop_left_entry.forget()
         self.crop_right_entry.forget()
         self.crop_button.forget()
+
         self.show_predictions_buttons.forget()
 
     def start_record(self):
@@ -84,14 +88,16 @@ class AiDriveApp(tk.Tk):
 
     def stop_record(self):
         self.recording = False
+        self.start_button.pack()
+        self.pack_record_ui()
         self.forget_record_gui()
         self.stop_button.forget()
-        self.pack_record_ui()
 
     def load_model(self):
         model_path = self.model_path.get()
         if os.path.exists(model_path):
-            self.model.load_state_dict(torch.load(model_path))
+            checkpoint = torch.load(model_path)
+            self.model.load_state_dict(checkpoint["model_state_dict"])
             self.model.eval()
             self.model_loaded = True
         else:
@@ -100,15 +106,17 @@ class AiDriveApp(tk.Tk):
     def record(self):
         while True:
             while self.recording:
-                showen_frame = self.Mk_screen_capture.capture_frame()
-                if self.show_prediction:
+                showen_frame = self.Mk_screen_capture.capture_frame_fps()
+                if self.show_prediction and self.model_loaded:
                     pil_frame = Image.fromarray(showen_frame)
                     frame_tensor = self.transformations(pil_frame)
                     prediction = self.model(torch.unsqueeze(frame_tensor, 0))
                     prediction_list = prediction.tolist()[0]
+                    print(prediction_list)
                     self.controller_sate.load_state(prediction_list)
                     showen_frame = self.visual_controller.draw_controller(showen_frame, self.controller_sate)
-                cv2.imshow("mario kart wii", showen_frame)
+                cv2.imshow("Mario kart", showen_frame)
+                cv2.waitKey(1)
             cv2.destroyAllWindows()
             if not self.app_open:
                 break
@@ -126,7 +134,7 @@ class AiDriveApp(tk.Tk):
             self.Mk_screen_capture.crop_right = 0
 
     def prediction_visibility(self):
-        if self.show_prediction:
+        if self.show_prediction and self.model_loaded:
             self.show_predictions_buttons.config(text="Hide Predictions")
         else:
             self.show_predictions_buttons.config(text="Show Predictions")
@@ -135,4 +143,5 @@ class AiDriveApp(tk.Tk):
     def close_app(self):
         self.started = False
         self.app_open = False
+        self.recording = False
         self.destroy()

@@ -36,5 +36,5 @@ class Model(nn.Module):
         x = F.dropout(x, self.p)
         x = F.relu(self.fc3(x))
         x = F.dropout(x, self.p)
-        x = F.relu(self.fc4(x))
+        x = F.softsign(self.fc4(x))
         return x
