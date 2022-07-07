@@ -46,7 +46,7 @@ class MKDataSet(Dataset):
         img_path = self.x[index]
         if not os.path.exists(img_path):
             raise IOError("[MKDataSet] Cannot find path to image")
-        img = Image.open(img_path)
+        img = Image.open(img_path).convert("RGB")
         if self.transform:
             img = self.transform(img)
         return img

@@ -22,7 +22,7 @@ class DataRecorder(tk.Tk):
         self.title('Data Recorder')
         self.geometry('550x400')
         self.controller_state = ControllerState()
-        self.Mk_screen_capture = MKScreenCapture()
+        self.Mk_screen_capture = None
 
         self.visual_controller = VisualController()
         self.recorder_thread = Thread(target=self.record)
@@ -153,11 +153,16 @@ class DataRecorder(tk.Tk):
         self.end_scale.set(self.frame_idx)
 
     def start_record(self):
-        if not self.started:
-            self.recorder_thread.start()
-            self.started = True
-        if not self.recording:
-            self.recording = True
+        try:
+            if not self.started:
+                self.Mk_screen_capture = MKScreenCapture()
+                self.recorder_thread.start()
+                self.started = True
+            if not self.recording:
+                self.recording = True
+
+        except Exception as e:
+            print("[Data Recorder App] Cannot find mario kart window")
 
     def stop_record(self):
         self.recording = False
