@@ -22,6 +22,7 @@ class AiDriveApp(tk.Tk):
         self.geometry("550x400")
         self.controller_sate = ControllerState()
         self.visual_controller = VisualController()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.started = False
         self.Mk_screen_capture = None
         self.app_open = True
@@ -31,6 +32,7 @@ class AiDriveApp(tk.Tk):
         self.model_path = tk.StringVar()
         self.model_path_entry = tk.Entry(self, width=200, textvariable=self.model_path)
         self.model = Model()
+        self.model.to(self.device)
         self.load_model_button = tk.Button(self, text="Load Model", command=self.load_model)
         self.transformations = transforms.Compose([transforms.ToTensor()])
         self.crop_up = tk.IntVar()
@@ -109,8 +111,9 @@ class AiDriveApp(tk.Tk):
                 showen_frame = self.Mk_screen_capture.capture_frame_fps()
                 if self.show_prediction and self.model_loaded:
                     pil_frame = Image.fromarray(showen_frame)
-                    frame_tensor = self.transformations(pil_frame)
-                    prediction = self.model(torch.unsqueeze(frame_tensor, 0))
+                    frame_tensor = torch.unsqueeze(self.transformations(pil_frame), 0)
+                    frame_tensor = frame_tensor.to(self.device)
+                    prediction = self.model(frame_tensor)
                     prediction_list = prediction.tolist()[0]
                     print(prediction_list)
                     self.controller_sate.load_state(prediction_list)

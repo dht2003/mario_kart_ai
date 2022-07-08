@@ -16,17 +16,16 @@ class Trainer:
         self.validationloader = validationloader
         self.log_interval = 10
         self.batch_size = trainloader.batch_size
-        self.train_losses = []
-        self.train_counter = []
+        self.history = []
+        self.epoch_counter = []
         self.save_dir = save_dir
 
     def train(self, epochs):
         for epoch in range(self.start_epoch, epochs + self.start_epoch):
-            print(f"Started epoch {epoch}")
-            print("Training Start")
             self.model.train()
-            train_loss = 0.0
-            valid_loss = 0.0
+            epoch_train_loss = 0.0
+            train_running_loss = 0.0
+            epoch_valid_loss = 0.0
             for batch_idx, (data, target) in enumerate(self.trainloader):
                 data, target = data.to(self.device), target.to(self.device)
                 self.optimizer.zero_grad()
@@ -34,43 +33,43 @@ class Trainer:
                 loss = self.criterion(output, target)
                 loss.backward()
                 self.optimizer.step()
-                train_loss += loss.item()
-
+                epoch_train_loss += loss.item() * output.size(0)
+                train_running_loss += loss.item()
                 if batch_idx % self.log_interval == 0:
-                    loss_val = train_loss / (batch_idx + 1)
-                    print(f"Training Epoch: {epoch} | Loss: {loss_val}")
-                    self.train_losses.append(loss_val)
-                    self.train_counter.append(
-                        (batch_idx * self.batch_size) + (epoch * len(self.trainloader.dataset)))
-            print("Train End")
-            self.save(epoch)
-            print("Valid Start")
+                    loss_val = train_running_loss / self.log_interval
+                    print(f"[Training Epoch: {epoch},Batch: {batch_idx}] | Loss: {loss_val}")
+                    train_running_loss = 0.0
             with torch.no_grad():
                 self.model.eval()
                 for batch_idx, (data, target) in enumerate(self.validationloader):
                     data, target = data.to(self.device), target.to(self.device)
                     output = self.model(data)
                     loss = self.criterion(output, target)
-                    valid_loss += loss.item()
-                    if batch_idx % self.log_interval == 0:
-                        loss_val = valid_loss / (batch_idx + 1)
-                        print(f"Training Epoch: {epoch} | Loss: {loss_val}")
-            print("Valid End\n")
+                    epoch_valid_loss += loss.item() * output.size(0)
+            epoch_train_loss_val = epoch_train_loss / len(self.trainloader.dataset)
+            epoch_valid_loss_val = epoch_valid_loss / len(self.validationloader.dataset)
+            print(f"Epoch {epoch}: \tTraining Loss: {epoch_train_loss_val} |\tValidation Loss: {epoch_valid_loss_val}")
+            self.history.append([epoch_train_loss_val, epoch_valid_loss_val])
+            self.epoch_counter.append(epoch)
+            self.save(epoch)
 
     def plot_train_loss(self):
         fig = plt.figure()
-        plt.plot(self.train_counter, self.train_losses, color='blue')
-        plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-        plt.xlabel('number of training examples seen')
-        plt.ylabel('mean squared error loss')
+        train_losses = [i[0] for i in self.history]
+        valid_losses = [i[1] for i in self.history]
+        plt.plot(self.epoch_counter, train_losses, label="Train Loss")
+        plt.plot(self.epoch_counter, valid_losses, label="Validation Loss")
+        plt.legend()
+        plt.xlabel('Epochs')
+        plt.ylabel('Mean squared error loss')
         return fig
 
     def save(self, epoch):
         state = {"epoch": epoch + 1,
                  "model_state_dict": self.model.state_dict(),
                  "optimizer_state_dict": self.optimizer.state_dict(),
-                 "train_losses": self.train_losses,
-                 "train_counter": self.train_counter}
+                 "history": self.history,
+                 "epoch_counter": self.epoch_counter}
         print("Saving Checkpoint")
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
@@ -83,5 +82,5 @@ class Trainer:
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.start_epoch = checkpoint["epoch"]
-        self.train_losses = checkpoint["train_losses"]
-        self.train_counter = checkpoint["train_counter"]
+        self.history = checkpoint["history"]
+        self.epoch_counter = checkpoint["epoch_counter"]
