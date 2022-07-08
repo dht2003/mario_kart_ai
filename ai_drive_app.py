@@ -108,9 +108,11 @@ class AiDriveApp(tk.Tk):
     def record(self):
         while True:
             while self.recording:
-                showen_frame = self.Mk_screen_capture.capture_frame_fps()
+                showen_frame = self.Mk_screen_capture.capture_frame()
                 if self.show_prediction and self.model_loaded:
-                    pil_frame = Image.fromarray(showen_frame)
+                    frame = cv2.cvtColor(showen_frame, cv2.COLOR_RGB2BGR)
+                    pil_frame = Image.fromarray(frame)
+                    pil_frame.show()
                     frame_tensor = torch.unsqueeze(self.transformations(pil_frame), 0)
                     frame_tensor = frame_tensor.to(self.device)
                     prediction = self.model(frame_tensor)
