@@ -112,7 +112,6 @@ class AiDriveApp(tk.Tk):
                 if self.show_prediction and self.model_loaded:
                     frame = cv2.cvtColor(showen_frame, cv2.COLOR_RGB2BGR)
                     pil_frame = Image.fromarray(frame)
-                    pil_frame.show()
                     frame_tensor = torch.unsqueeze(self.transformations(pil_frame), 0)
                     frame_tensor = frame_tensor.to(self.device)
                     prediction = self.model(frame_tensor)

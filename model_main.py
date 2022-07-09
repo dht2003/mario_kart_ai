@@ -9,9 +9,9 @@ from train import Trainer
 import matplotlib.pyplot as plt
 
 lr = 1e-4
-weight_decay = 1e-5
 batch_size = 128
 num_workers = 4
+epochs = 100
 save_dir = "./results"
 
 
@@ -24,7 +24,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     trainer = Trainer(model, device, optimizer, criterion, trainloader, validloader, save_dir)
     # trainer.load("results/mario-kart-model-2.pt")
-    trainer.train(3)
+    trainer.train(epochs)
     f = trainer.plot_train_loss()
     plt.show()
 
