@@ -1,6 +1,8 @@
 import json
 import os
 import numpy as np
+import vgamepad as vg
+import time
 
 L2_MAP = 15
 R2_MAP = 16
@@ -22,7 +24,9 @@ class ControllerState:
         self._dpad_right = 0
         self._steer_x = 0
         self._steer_y = 0
-        self.translator = GameCubeTranslator() if translator is None else translator
+        self.gc_translator = GameCubeTranslator() if translator is None else translator
+        self.ps_translator = PsTranslator()
+        self.gamepad = vg.VDS4Gamepad()
 
     def state(self):
         return np.array([self.steer_x, self.steer_y, self._a_button, self._b_button, self._l_button, self._x_button,
@@ -30,11 +34,14 @@ class ControllerState:
                          self.z_button, self._dpad_up, self._dpad_down, self._dpad_left, self._dpad_right],
                         dtype=np.float32)
 
+    def __str__(self):
+        return f"Controller State:\njoystick: x:{self.steer_x},y:{self.steer_y}\nA:{self.a_button}\nB:{self.b_button}\nL:{self.l_button}\nX:{self.x_button}\nY:{self.y_button}\nZ:{self.z_button}\nSTART:{self.start_button}\nDPAD: up:{self.dpad_up},down:{self.dpad_down},left:{self.dpad_left},right:{self.dpad_right}"
+
     def writefile(self, file):
         np.savetxt(file, self.state(), newline=',')
 
     def __getitem__(self, key):
-        key = self.translator[key]
+        key = self.gc_translator[key]
         key = key.lower()
         if key == "a":
             return self.a_button
@@ -66,7 +73,7 @@ class ControllerState:
             raise KeyError("[ControllerState] Invalid key")
 
     def __setitem__(self, key, value):
-        key = self.translator[key]
+        key = self.gc_translator[key]
         key = key.lower()
         if key == "a":
             self.a_button = value
@@ -241,7 +248,7 @@ class ControllerState:
     def steer(self, value, axis):
         triggers_threshold = 0.9
         joystick_threshold = 0.1
-        axis = self.translator.get_axis(axis)
+        axis = self.gc_translator.get_axis(axis)
         if axis == "X":
             value = 0 if abs(value) <= joystick_threshold else value
             self.steer_x = value
@@ -269,6 +276,112 @@ class ControllerState:
         self.dpad_left = state_list[10]
         self.dpad_right = state_list[11]
 
+    def emulate_outputs(self):
+        if self.a_pressed():
+            self.emulate_button_press("A")
+        else:
+            self.emulate_button_release("A")
+        if self.b_pressed():
+            self.emulate_button_press("B")
+        else:
+            self.emulate_button_release("B")
+        if self.l_pressed():
+            self.emulate_button_press("L-TRIGGER")
+        else:
+            self.emulate_button_release("L-TRIGGER")
+        if self.x_pressed():
+            self.emulate_button_press("X")
+        else:
+            self.emulate_button_release("X")
+        if self.y_pressed():
+            self.emulate_button_press("Y")
+        else:
+            self.emulate_button_release("Y")
+        if self.z_pressed():
+            self.emulate_button_press("Z")
+        else:
+            self.emulate_button_release("Z")
+        if self.start_pressed():
+            self.emulate_button_press("START")
+        else:
+            self.emulate_button_release("START")
+        if self.dpad_up_pressed():
+            self.emulate_button_press("DPAD-UP")
+        else:
+            self.emulate_button_release("DPAD-UP")
+        if self.dpad_down_pressed():
+            self.emulate_button_press("DPAD-DOWN")
+        else:
+            self.emulate_button_release("DPAD-DOWN")
+        if self.dpad_left_pressed():
+            self.emulate_button_press("DPAD-LEFT")
+        else:
+            self.emulate_button_release("DPAD-LEFT")
+        if self.dpad_right_pressed():
+            self.emulate_button_press("DPAD-RIGHT")
+        else:
+            self.emulate_button_release("DPAD-RIGHT")
+        self.gamepad.left_joystick_float(self.steer_x, self.steer_y)
+        self.gamepad.update()
+
+    def emulate_button_press(self, key):
+        key = self.ps_translator[key]
+        if key == "square":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_SQUARE)
+        elif key == "triangle":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_TRIANGLE)
+        elif key == "x":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
+        elif key == "circle":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CIRCLE)
+        elif key == "options":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_OPTIONS)
+        elif key == "hat-north":
+            self.gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NORTH)
+        elif key == "hat-south":
+            self.gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_SOUTH)
+        elif key == "hat-west":
+            self.gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_WEST)
+        elif key == "hat-east":
+            self.gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_EAST)
+        elif key == "r-trigger":
+            self.gamepad.right_trigger_float(1)
+        elif key == "l-trigger":
+            self.gamepad.left_trigger_float(1)
+        elif key == "r1":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_RIGHT)
+        elif key == "l1":
+            self.gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_LEFT)
+        elif key == "touchpad":
+            self.gamepad.press_special_button(special_button=vg.DS4_SPECIAL_BUTTONS.DS4_SPECIAL_BUTTON_TOUCHPAD)
+        elif key == "ps":
+            self.gamepad.press_special_button(special_button=vg.DS4_SPECIAL_BUTTONS.DS4_SPECIAL_BUTTON_PS)
+
+    def emulate_button_release(self, key):
+        key = self.ps_translator[key]
+        if key == "square":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_SQUARE)
+        elif key == "triangle":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_TRIANGLE)
+        elif key == "x":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
+        elif key == "circle":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CIRCLE)
+        elif key == "options":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_OPTIONS)
+        elif key == "r-trigger":
+            self.gamepad.right_trigger_float(0)
+        elif key == "l-trigger":
+            self.gamepad.left_trigger_float(0)
+        elif key == "r1":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_RIGHT)
+        elif key == "l1":
+            self.gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_SHOULDER_LEFT)
+        elif key == "touchpad":
+            self.gamepad.release_special_button(special_button=vg.DS4_SPECIAL_BUTTONS.DS4_SPECIAL_BUTTON_TOUCHPAD)
+        elif key == "ps":
+            self.gamepad.release_special_button(special_button=vg.DS4_SPECIAL_BUTTONS.DS4_SPECIAL_BUTTON_PS)
+
 
 class ControllerTranslator:
     def __init__(self, keys_file, axis_file):
@@ -286,9 +399,9 @@ class ControllerTranslator:
         return self.axis_dict[axis]
 
 
-class Ps4ControllerTranslator(ControllerTranslator):
+class PsTranslator(ControllerTranslator):
     def __init__(self, ps4_key_file="ps4_keys.json", ps4_axis_file="ps4_axis.json"):
-        super(Ps4ControllerTranslator, self).__init__(ps4_key_file, ps4_axis_file)
+        super(PsTranslator, self).__init__(ps4_key_file, ps4_axis_file)
 
 
 class GameCubeTranslator(ControllerTranslator):

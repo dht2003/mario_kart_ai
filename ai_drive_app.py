@@ -118,6 +118,7 @@ class AiDriveApp(tk.Tk):
                     prediction_list = prediction.tolist()[0]
                     print(prediction_list)
                     self.controller_sate.load_state(prediction_list)
+                    self.controller_sate.emulate_outputs()
                     showen_frame = self.visual_controller.draw_controller(showen_frame, self.controller_sate)
                 cv2.imshow("Mario kart", showen_frame)
                 cv2.waitKey(1)
