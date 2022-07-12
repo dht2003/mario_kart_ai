@@ -10,7 +10,6 @@ import os
 import shutil
 import tkinter.messagebox as tkMessageBox
 from datetime import datetime
-import numpy as np
 
 IMAGE_TYPE = ".png"
 

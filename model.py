@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 
 INPUT_CHANNELS = 3
 OUTPUT_SHAPE = 12
+SPLIT_POINT = 2
 
 
 class Model(nn.Module):
@@ -36,5 +37,26 @@ class Model(nn.Module):
         x = F.dropout(x, self.p)
         x = F.relu(self.fc3(x))
         x = F.dropout(x, self.p)
-        x = F.softsign(self.fc4(x))
+        x = self.fc4(x)
+        first_slice = x[:, 0:SPLIT_POINT]
+        second_slice = x[:, SPLIT_POINT:]
+        tuple_of_activated_parts = (
+            F.softsign(first_slice),
+            torch.sigmoid(second_slice)
+        )
+        x = torch.cat(tuple_of_activated_parts, dim=1)
         return x
+
+
+# TODO : fix it
+def custom_loss(output, target):
+    first_output_slice = output[:, 0:SPLIT_POINT]
+    second_output_slice = output[:, SPLIT_POINT:]
+    first_target_slice = target[:, 0:SPLIT_POINT]
+    second_target_slice = target[:, SPLIT_POINT:]
+    first_criterion = nn.MSELoss()
+    second_criterion = nn.CrossEntropyLoss()
+    first_slice_loss = first_criterion(first_output_slice, first_target_slice)
+    second_slice_loss = second_criterion(second_output_slice, second_target_slice)
+    loss = first_slice_loss + second_slice_loss
+    return loss
