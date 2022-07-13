@@ -48,14 +48,13 @@ class Model(nn.Module):
         return x
 
 
-# TODO : fix it
 def custom_loss(output, target):
     first_output_slice = output[:, 0:SPLIT_POINT]
     second_output_slice = output[:, SPLIT_POINT:]
     first_target_slice = target[:, 0:SPLIT_POINT]
     second_target_slice = target[:, SPLIT_POINT:]
     first_criterion = nn.MSELoss()
-    second_criterion = nn.CrossEntropyLoss()
+    second_criterion = nn.BCELoss()
     first_slice_loss = first_criterion(first_output_slice, first_target_slice)
     second_slice_loss = second_criterion(second_output_slice, second_target_slice)
     loss = first_slice_loss + second_slice_loss
