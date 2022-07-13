@@ -18,6 +18,7 @@ class ControllerState:
         self._y_button = 0
         self._z_button = 0
         self._start_button = 0
+        self.button_threshold = 0.85
         self._dpad_up = 0
         self._dpad_down = 0
         self._dpad_left = 0
@@ -114,7 +115,7 @@ class ControllerState:
 
     @a_button.setter
     def a_button(self, value):
-        self._a_button = round(value)
+        self._a_button = 1 if value > self.button_threshold else 0
 
     @property
     def b_button(self):
@@ -122,7 +123,7 @@ class ControllerState:
 
     @b_button.setter
     def b_button(self, value):
-        self._b_button = round(value)
+        self._b_button = 1 if value > self.button_threshold else 0
 
     @property
     def l_button(self):
@@ -130,7 +131,7 @@ class ControllerState:
 
     @l_button.setter
     def l_button(self, value):
-        self._l_button = round(value)
+        self._l_button = 1 if value > self.button_threshold else 0
 
     @property
     def x_button(self):
@@ -138,7 +139,7 @@ class ControllerState:
 
     @x_button.setter
     def x_button(self, value):
-        self._x_button = round(value)
+        self._x_button = 1 if value > self.button_threshold else 0
 
     @property
     def y_button(self):
@@ -146,7 +147,7 @@ class ControllerState:
 
     @y_button.setter
     def y_button(self, value):
-        self._y_button = round(value)
+        self._y_button = 1 if value > self.button_threshold else 0
 
     @property
     def z_button(self):
@@ -154,7 +155,7 @@ class ControllerState:
 
     @z_button.setter
     def z_button(self, value):
-        self._z_button = round(value)
+        self._z_button = 1 if value > self.button_threshold else 0
 
     @property
     def start_button(self):
@@ -162,7 +163,7 @@ class ControllerState:
 
     @start_button.setter
     def start_button(self, value):
-        self._start_button = value
+        self._start_button = 1 if value > self.button_threshold else 0
 
     @property
     def dpad_up(self):
@@ -170,7 +171,7 @@ class ControllerState:
 
     @dpad_up.setter
     def dpad_up(self, value):
-        self._dpad_up = round(value)
+        self._dpad_up = 1 if value > self.button_threshold else 0
 
     @property
     def dpad_down(self):
@@ -178,7 +179,7 @@ class ControllerState:
 
     @dpad_down.setter
     def dpad_down(self, value):
-        self._dpad_down = round(value)
+        self._dpad_down = 1 if value > self.button_threshold else 0
 
     @property
     def dpad_left(self):
@@ -186,7 +187,7 @@ class ControllerState:
 
     @dpad_left.setter
     def dpad_left(self, value):
-        self._dpad_left = round(value)
+        self._dpad_left = 1 if value > self.button_threshold else 0
 
     @property
     def dpad_right(self):
@@ -194,7 +195,7 @@ class ControllerState:
 
     @dpad_right.setter
     def dpad_right(self, value):
-        self._dpad_right = round(value)
+        self._dpad_right = 1 if value > self.button_threshold else 0
 
     @property
     def steer_x(self):
