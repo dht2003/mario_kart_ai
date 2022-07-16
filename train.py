@@ -5,12 +5,13 @@ import torch
 
 
 class Trainer:
-    def __init__(self, model, device, optimizer, criterion, trainloader, validationloader, save_dir="./"):
+    def __init__(self, model, device, optimizer, scheduler, criterion, trainloader, validationloader, save_dir="./"):
         self.model = model
         self.device = device
         self.model.to(device)
         self.start_epoch = 0
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.criterion = criterion
         self.trainloader = trainloader
         self.validationloader = validationloader
@@ -48,6 +49,7 @@ class Trainer:
                     epoch_valid_loss += loss.item() * output.size(0)
             epoch_train_loss_val = epoch_train_loss / len(self.trainloader.dataset)
             epoch_valid_loss_val = epoch_valid_loss / len(self.validationloader.dataset)
+            self.scheduler.step()
             print(f"Epoch {epoch}: \tTraining Loss: {epoch_train_loss_val} |\tValidation Loss: {epoch_valid_loss_val}")
             self.history.append([epoch_train_loss_val, epoch_valid_loss_val])
             self.epoch_counter.append(epoch)
@@ -69,7 +71,8 @@ class Trainer:
                  "model_state_dict": self.model.state_dict(),
                  "optimizer_state_dict": self.optimizer.state_dict(),
                  "history": self.history,
-                 "epoch_counter": self.epoch_counter}
+                 "epoch_counter": self.epoch_counter,
+                 'scheduler': self.scheduler.state_dict()}
         print("Saving Checkpoint")
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
@@ -84,3 +87,4 @@ class Trainer:
         self.start_epoch = checkpoint["epoch"]
         self.history = checkpoint["history"]
         self.epoch_counter = checkpoint["epoch_counter"]
+        self.scheduler.load_state_dict(checkpoint["scheduler"])

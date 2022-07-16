@@ -1,5 +1,5 @@
 from torchvision import transforms
-
+from torch.optim.lr_scheduler import MultiStepLR
 from Data import MKDataSet, show_batch, data_loader
 import torch
 import torch.nn as nn
@@ -13,6 +13,8 @@ weight_decay = 1e-5
 batch_size = 64
 num_workers = 4
 epochs = 100
+milestones = [30, 65]
+gamma = 0.1
 save_dir = "./results"
 
 
@@ -21,9 +23,10 @@ def main():
     trainloader, validloader = data_loader("D:/dev/mario_kart_ai/samples", "D:/dev/mario_kart_ai/valid", batch_size,
                                            num_workers)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    scheduler = MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
     criterion = custom_loss
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    trainer = Trainer(model, device, optimizer, criterion, trainloader, validloader, save_dir)
+    trainer = Trainer(model, device, optimizer, scheduler, criterion, trainloader, validloader, save_dir)
     # trainer.load("results/mario-kart-model-2.pt")
     trainer.train(epochs)
     f = trainer.plot_train_loss()
