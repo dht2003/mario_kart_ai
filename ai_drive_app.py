@@ -1,7 +1,7 @@
 import torch
 
 from controller import ControllerState
-from model import Model
+from model import NvidiaModel
 from cv2 import cv2
 import os
 import numpy as np
@@ -31,7 +31,7 @@ class AiDriveApp(tk.Tk):
         self.show_prediction = False
         self.model_path = tk.StringVar()
         self.model_path_entry = tk.Entry(self, width=200, textvariable=self.model_path)
-        self.model = Model()
+        self.model = NvidiaModel()
         self.model.to(self.device)
         self.load_model_button = tk.Button(self, text="Load Model", command=self.load_model)
         self.transformations = transforms.Compose([transforms.ToTensor()])

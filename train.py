@@ -61,7 +61,7 @@ class Trainer:
         plt.plot(self.epoch_counter, valid_losses, label="Validation Loss")
         plt.legend()
         plt.xlabel('Epochs')
-        plt.ylabel('Mean squared error loss')
+        plt.ylabel('Mse + Bce Loss')
         return fig
 
     def save(self, epoch):

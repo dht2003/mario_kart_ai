@@ -18,7 +18,7 @@ class ControllerState:
         self._y_button = 0
         self._z_button = 0
         self._start_button = 0
-        self.button_threshold = 0.85
+        self.button_threshold = 0.9
         self._dpad_up = 0
         self._dpad_down = 0
         self._dpad_left = 0

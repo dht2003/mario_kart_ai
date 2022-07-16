@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.models import resnet50
+
 import torch.optim as optim
 from matplotlib.figure import Figure
 
@@ -9,9 +11,9 @@ OUTPUT_SHAPE = 12
 SPLIT_POINT = 2
 
 
-class Model(nn.Module):
+class NvidiaModel(nn.Module):
     def __init__(self, p=0.2):
-        super(Model, self).__init__()
+        super(NvidiaModel, self).__init__()
         self.p = p
         self.conv1 = nn.Conv2d(INPUT_CHANNELS, 24, kernel_size=(5, 5), stride=(2, 2))
         self.conv2 = nn.Conv2d(24, 36, kernel_size=(5, 5), stride=(2, 2))
@@ -38,14 +40,33 @@ class Model(nn.Module):
         x = F.relu(self.fc3(x))
         x = F.dropout(x, self.p)
         x = self.fc4(x)
-        first_slice = x[:, 0:SPLIT_POINT]
-        second_slice = x[:, SPLIT_POINT:]
-        tuple_of_activated_parts = (
-            F.softsign(first_slice),
-            torch.sigmoid(second_slice)
-        )
-        x = torch.cat(tuple_of_activated_parts, dim=1)
+        x = custom_activation(x)
         return x
+
+
+class ResnetTransferModel(nn.Module):
+    def __init__(self):
+        super(ResnetTransferModel, self).__init__()
+        self.resnet = resnet50(pretrained=True)
+        freeze_parameters(self.resnet)
+        self.resnet.fc = nn.Identity()
+        self.fc1 = nn.Linear(2048, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 64)
+        self.fc4 = nn.Linear(64, OUTPUT_SHAPE)
+
+    def forward(self, x):
+        x = self.resnet(x)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = custom_activation(self.fc4(x))
+        return x
+
+
+def freeze_parameters(model):
+    for param in model.parameters():
+        param.requires_grad = False
 
 
 def custom_loss(output, target):
@@ -59,3 +80,14 @@ def custom_loss(output, target):
     second_slice_loss = second_criterion(second_output_slice, second_target_slice)
     loss = first_slice_loss + second_slice_loss
     return loss
+
+
+def custom_activation(x):
+    first_slice = x[:, 0:SPLIT_POINT]
+    second_slice = x[:, SPLIT_POINT:]
+    tuple_of_activated_parts = (
+        F.softsign(first_slice),
+        torch.sigmoid(second_slice)
+    )
+    x = torch.cat(tuple_of_activated_parts, dim=1)
+    return x

@@ -3,6 +3,6 @@ __pycache__/
 samples/
 .ipynb_checkpoints/
 valid/
-Logs/
+backups/Logs/
 results/
 backups/
