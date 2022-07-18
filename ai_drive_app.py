@@ -1,7 +1,7 @@
 import torch
 
 from controller import ControllerState
-from model import NvidiaModel
+from model import NvidiaModel, ResnetTransferModel
 from cv2 import cv2
 import os
 import numpy as np

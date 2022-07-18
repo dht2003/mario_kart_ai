@@ -87,4 +87,4 @@ class Trainer:
         self.start_epoch = checkpoint["epoch"]
         self.history = checkpoint["history"]
         self.epoch_counter = checkpoint["epoch_counter"]
-        self.scheduler.load_state_dict(checkpoint["scheduler"])
+        #self.scheduler.load_state_dict(checkpoint["scheduler"])
